@@ -1,8 +1,7 @@
 using System;
-using teste.ApiCore31.Helpers;
-using teste.ApiCore31.Models;
+using teste.Models;
 
-namespace teste.ApiCore31.Mockupping
+namespace teste.Helpers
 {
     /// <summary>
     /// Class for mockupping something needed for application use

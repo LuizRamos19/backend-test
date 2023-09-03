@@ -1,34 +1,34 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-namespace teste.ApiCore31.Models
+namespace teste.Models
 {
     public class ApiConversionObject
     {
-        [JsonProperty("result")] 
+        [JsonPropertyName("result")] 
         public string Result { get; set; }
 
-        [JsonProperty("documentation")] 
+        [JsonPropertyName("documentation")] 
         public string Documentation { get; set; }
 
-        [JsonProperty("terms_of_use")] 
+        [JsonPropertyName("terms_of_use")] 
         public string TermsOfUse { get; set; }
 
-        [JsonProperty("time_last_update_unix")] 
+        [JsonPropertyName("time_last_update_unix")] 
         public string TimeLastUpdateUnix { get; set; }
 
-        [JsonProperty("time_last_update_utc")] 
+        [JsonPropertyName("time_last_update_utc")] 
         public string TimeLastUpdateUtc { get; set; }
 
-        [JsonProperty("time_next_update_unix")] 
+        [JsonPropertyName("time_next_update_unix")] 
         public string TimeNextUpdateUnix { get; set; }
 
-        [JsonProperty("time_next_update_utc")] 
+        [JsonPropertyName("time_next_update_utc")] 
         public string TimeNextUpdateUtc { get; set; }
 
-        [JsonProperty("base_code")] 
+        [JsonPropertyName("base_code")] 
         public string BaseCode { get; set; }
 
-        [JsonProperty("conversion_rates")] 
+        [JsonPropertyName("conversion_rates")] 
         public ConversionRate ConversionRates { get; set; }
     }
 }

@@ -1,21 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using teste.ApiCore31.Constatns;
-using teste.ApiCore31.Helpers;
+using teste.ApiCore31.Infrastructure.Caching;
+using teste.ApiCore31.Infrastructure.DataBase;
 using teste.ApiCore31.Interfaces;
+using teste.ApiCore31.Repositories;
 
 namespace teste.ApiCore31
 {
@@ -49,6 +42,14 @@ namespace teste.ApiCore31
                 // var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 // var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 // c.IncludeXmlComments(xmlPath);
+            });
+
+            services.AddScoped<IKafkaMessageRepository, KafkaMenssageRepository>();
+            services.AddScoped<ICachingService, CachingService>();
+            services.AddScoped<ISnapperDataBase, SnapperDataBase>();
+            services.AddStackExchangeRedisCache( o => {
+                o.InstanceName = Parameters.RedisInstaceName;
+                o.Configuration = Parameters.RedisConfiguration;
             });
 
             services.AddCors(options =>

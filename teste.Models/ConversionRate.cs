@@ -1,4 +1,4 @@
-namespace teste.ApiCore31.Models
+namespace teste.Models
 {
     public class ConversionRate
     {

@@ -1,19 +1,22 @@
 ﻿using System;
-using System.Data;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Confluent.Kafka;
 using Confluent.Kafka.Admin;
-using teste.ApiCore31.Helpers;
-using teste.ApiCore31.Models;
-using teste.ApiCore31.Mockupping;
-using Newtonsoft.Json;
-using teste.ApiCore31.Constatns;
+using teste.Models;
+using teste.ApiCore31.Interfaces;
+using System.Collections.Generic;
+using System.Threading;
 using System.Text;
-using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
-using System.Net.Http;
+using teste.ApiCore31.Constatns;
+using teste.ApiCore31.Infrastructure.Caching;
+using teste.ApiCore31.Infrastructure.DataBase;
+using System.Data;
+using Snapper.Core.DataBase;
+using System.Text.Json;
+using StackExchange.Redis;
+using Confluent.Kafka;
 
 namespace teste.ApiCore31.Controllers
 {
@@ -21,99 +24,197 @@ namespace teste.ApiCore31.Controllers
     [Route("[controller]")]
     public class ProcessDataController : ControllerBase
     {
-        private static readonly Snapper.Core.Snapper _snapper = DataHelper.CreateOracleConnection();
+        
         private readonly ILogger<ProcessDataController> _logger;
+        private readonly IKafkaMessageRepository _kafkaMessageRepository;
+        private readonly ICachingService _cachingService;
+        private readonly ISnapperDataBase _snapperDataBase;
+        private static readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public ProcessDataController(ILogger<ProcessDataController> logger)
+        public ProcessDataController(ILogger<ProcessDataController> logger, 
+            IKafkaMessageRepository kafkaMessageRepository, 
+            ICachingService cachingService,
+            ISnapperDataBase snapperDataBase)
         {
             _logger = logger;
-        }
-
-        /// <summary>
-        /// Generate necessary tests and artifacts for development
-        /// </summary>
-        /// <param name="generateSalesJsonFile">Use if need to convert Sales.txt to .jason file. This one will be generated in the same path of the .txt</param>
-        /// <param name="generateSaleMockEntity">Use if need to buils a mockupping from Sale entity</param>
-        /// <returns>If connected</returns>
-        /// <remarks>
-        /// Nothing here
-        /// </remarks>
-        [HttpGet("TestApi")]
-        [SwaggerOperation(Summary = "Test and Build", Description = "Generate necessary tests and artifacts for development")]
-        [SwaggerResponse(200, "Everything works well")]
-        [SwaggerResponse(400, "BAD REQUEST")]
-        [SwaggerResponse(500, "SERVER ERROR")]
-        public async Task<IActionResult> Get([FromQuery]bool generateSalesJsonFile = false, bool generateSaleMockEntity = false)
-        {
-            try
-            {
-                var currentTime = DateTime.Now;
-                var testeResult = new StringBuilder();
-                testeResult.AppendLine($"{currentTime:HH:mm:ss} -> Start API test");
-                #region-- MOC testing for rate --
-                if (generateSaleMockEntity)
-                {
-                    var sale = Mock.MockSaleEntity;
-                    testeResult.AppendLine($"{(DateTime.Now-currentTime).TotalSeconds:00 secs taken} -> Sale entity mock generated.");
-                    if (sale.TransactionCurrencyCode.ToUpper() != "USD")
-                    {
-                        var currentTransactionAmount = sale.TransactionAmount.ToString();
-                        sale = await ConvertToDollar(sale);
-                        testeResult.AppendLine($"{(DateTime.Now-currentTime).TotalSeconds:00 secs taken} -> Transaction Amount converted from {sale.TransactionCurrencyCode} to USD: {currentTransactionAmount} to {sale.TransactionAmount}.");
-                    }
-                    else {
-                        testeResult.AppendLine($"{(DateTime.Now-currentTime).TotalSeconds:00 secs taken} -> No need to Exchange Transaction Amount.");
-                    }
-                }
-                #endregion
-
-                #region-- MOC to create json file from Sales.txt --
-                if (generateSalesJsonFile) 
-                {
-                    await FileHelper.SalesListToJsonFile();
-                    testeResult.AppendLine($"{(DateTime.Now-currentTime).TotalSeconds:00 secs taken} -> Sales.json file successfully created.");
-                }
-                #endregion
-
-                _snapper.CreateCommand("SELECT sysdate FROM dual", null, CommandType.Text);
-                var tblSales = await _snapper.Command.ExecuteTableAsync();
-                var count = tblSales.Rows.Count;
-                testeResult.AppendLine($"{(DateTime.Now-currentTime).TotalSeconds:00 secs taken} -> Success on connect to Oracle.");
-                return StatusCode(200,testeResult.ToString()); 
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            _kafkaMessageRepository = kafkaMessageRepository;
+            _cachingService = cachingService;
+            _snapperDataBase = snapperDataBase;
         }
 
         /// <summary>
         /// Receive some data to process in queue
         /// </summary>
+        /// <param name="sales">The list of Sale entity to be processed</param>
         /// <returns>Não sei</returns>
+        /// <remarks>
+        /// Nothing here
+        /// </remarks>
         [HttpPost]
-        public async Task Post([FromBody] Sale sale)
+        public async Task<IActionResult> Post([FromBody] List<Sale> sales)
         {
-            await CreateTopicAsync("","ss");
-            _snapper.CreateCommand("select * from sales", null, CommandType.Text);
-            var tblSales = await _snapper.Command.ExecuteTableAsync();
-            var count = tblSales.Rows.Count;
-        }
-    
-        static async Task CreateTopicAsync(string bootstrapServers, string topicName) {
+            Sale pickedSale = new Sale();
+            var processResult = new StringBuilder();
+
             try
             {
-                using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = bootstrapServers }).Build();
-                await adminClient.CreateTopicsAsync(new TopicSpecification[] {
-                    new TopicSpecification { Name = "myTopicName", ReplicationFactor = 1, NumPartitions = 1 } });
-            }
-            catch (CreateTopicsException e) 
-            {
-                Console.WriteLine($"An error occured creating topic {e.Results[0].Topic}: {e.Results[0].Error.Reason}");
+                while (!_cts.IsCancellationRequested)
+                {
+                    try
+                    {
+                        foreach (var sale in sales)
+                        {
+                            pickedSale = sale;
+                            _logger.LogInformation($"Api received {sales.Count} record to process");
+
+                            #region-- Kafka --
+                            processResult.AppendLine(await CreateTopicAsync(sale));
+                            #endregion
+
+                            #region-- Redis --
+                            processResult.AppendLine(await CreateRedisRecord(sale));
+                            #endregion
+                        }
+                        _cts.Cancel();
+                        _logger.LogInformation($"Api just finishes {sales.Count} records processed");
+                    }
+                    catch (CreateTopicsException e)
+                    {
+                        _logger.LogError($"Sale unprocessed by TopicsException: {e.Error}\nTopic: {e.Results[0].Topic} \nReason: {e.Results[0].Error.Reason}", pickedSale);
+                        continue;
+                    }
+                }
+                return StatusCode(200, processResult.ToString());
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occured creating topic {ex.Message}");
+                _logger.LogError(ex.Message, $"{ex.Message}\n{processResult}");
+                return StatusCode(500, $"{ex.Message}\n{processResult}");
+            }
+        }
+
+        /// <summary>
+        /// Create Kafka topic
+        /// </summary>
+        /// <param name="sale">List of Sales entities to process</param>
+        /// <returns>Process result log</returns>
+        async Task<string> CreateTopicAsync(Sale sale) 
+        {
+            var currentTime = DateTime.Now;
+            var processResult = new StringBuilder();
+            processResult.AppendLine($"Record process start at: {currentTime:yyyy-MM-dd HH:mm:ss}");
+            try
+            {
+                try
+                {
+                    var status = await _kafkaMessageRepository.SendMensagemAsync(sale);
+                    if (status == PersistenceStatus.Persisted)
+                    {
+                        processResult.AppendLine($"{(DateTime.Now - currentTime).TotalSeconds:In 00 secs taken} has been queued up.");
+                        _logger.LogInformation($"Record {sale.AccountID} processed with status:{status}", sale);
+                    }
+                    processResult.AppendLine($"Record processing finished at: {currentTime:yyyy-MM-dd HH:mm:ss} with {(DateTime.Now - currentTime).TotalSeconds: secounds taken}");
+                    _logger.LogInformation($"Record processing finished", processResult.ToString());
+                }
+                catch (CreateTopicsException e)
+                {
+                    var logMessage = $"Record unprocessed by TopicsException: {e.Error}\nTopic: {e.Results[0].Topic} \nReason: {e.Results[0].Error.Reason}";
+                    processResult.AppendLine(logMessage);
+                    _logger.LogError(logMessage, sale);
+                }
+                return processResult.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Record unprocessed by Exception: {ex.Message}", sale);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Create record on the Redis
+        /// </summary>
+        /// <param name="sale">Sale entitie</param>
+        /// <returns>Process result log</returns>
+        async Task<string> CreateRedisRecord(Sale sale)
+        {
+            try
+            {
+                var processResult = new StringBuilder();
+                string logMessage;
+
+                var todoCache = await _cachingService.GetAsync(sale.Id.ToString());
+                Sale saleToDo = null;
+                if (!string.IsNullOrWhiteSpace(todoCache))
+                {
+                    saleToDo = JsonSerializer.Deserialize<Sale>(todoCache);
+                    logMessage = "Record already in Redis cache";
+                    processResult.AppendLine(logMessage);
+                    _logger.LogInformation(logMessage, saleToDo);
+                    return processResult.ToString();
+                }
+
+                var oracle = _snapperDataBase.CreateOracleConnection();
+                #region-- Chamada de procedure da erro quando chama base no Container --
+                //PLS-00306: wrong number or types of arguments in call to 'SAVE_SALE'
+                //oracle.CreateCommand(
+                //    EnumExtension<OracleProcedure>.GetDisplayValue(OracleProcedure.GetSale),
+                //    new List<Parameter>
+                //    {
+                //        new Parameter
+                //        {
+                //            Name = "P_AccountID",
+                //            Value = sale.AccountID,
+                //            ParameterDirection = ParameterDirection.Input,
+                //            ParameterDbType = ParameterDbType.Varchar2
+                //        },
+                //        new Parameter
+                //        {
+                //            Name = "O_Result",
+                //            Value = null,
+                //            ParameterDirection = ParameterDirection.Output,
+                //            ParameterDbType = ParameterDbType.RefCursor
+                //        }
+                //    },
+                //    CommandType.StoredProcedure
+                //);
+                #endregion
+                //Então vai texto direto mesmo.
+                oracle.CreateCommand(
+                    "SELECT count(*) Existe FROM sales s WHERE s.ACCOUNT_ID = (p)AccountId",
+                    new List<Parameter>
+                    {
+                                    new Parameter
+                                    {
+                                        Name = "AccountId",
+                                        Value = sale.AccountID,
+                                        ParameterDirection = ParameterDirection.Input,
+                                        ParameterDbType = ParameterDbType.Varchar2
+                                    }
+                    },
+                    CommandType.Text
+                );
+                var tb = oracle.Command.ExecuteTable();
+                if (Convert.ToInt64(tb.Rows[0]["Existe"]) == 0)
+                {
+                    await _cachingService.SetAsync(sale.Id.ToString(), JsonSerializer.Serialize(saleToDo));
+                    logMessage = "Record not fount in the data base, so sent to the Redis cache";
+                    processResult.AppendLine(logMessage);
+                    _logger.LogInformation(logMessage, saleToDo);
+                }
+
+                return processResult.ToString();
+
+            }
+            catch (RedisException re)
+            {
+                _logger.LogError(re.Message, sale);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, sale);
+                throw;
             }
         }
 
@@ -126,14 +227,15 @@ namespace teste.ApiCore31.Controllers
         {
             try
             {
-                var URLString = new Uri($@"https://v6.exchangerate-api.com/v6/{Credentials.ExchangeApiKey}/latest/USD");
-                using var webClient = new System.Net.WebClient();
+                var URLString = new Uri($@"https://v6.exchangerate-api.com/v6/{Parameters.ExchangeRateApiKey}/latest/USD");
+                using var webClient = new WebClient();
                 var json = await webClient.DownloadStringTaskAsync(URLString);
-                ApiConversionObject convesion = JsonConvert.DeserializeObject<ApiConversionObject>(json);
+                ApiConversionObject convesion = JsonSerializer.Deserialize<ApiConversionObject>(json);
 
                 //Reflection to get related value from sale to apply conversion
                 var rateValue = convesion.ConversionRates.GetType().GetProperty(sale.TransactionCurrencyCode).GetValue(convesion.ConversionRates, null);
-                if (rateValue == null) return sale;
+                if (rateValue == null)
+                    return sale;
                 sale.TransactionAmount /= Convert.ToDouble(rateValue);
                 return sale;
             }
@@ -141,6 +243,6 @@ namespace teste.ApiCore31.Controllers
             {
                 throw ex;
             }
-        } 
+        }
     }
 }

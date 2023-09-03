@@ -1,14 +1,13 @@
 using System;
 using System.Data;
-using Newtonsoft.Json;
-using teste.ApiCore31.Helpers;
+using System.Text.Json.Serialization;
 
-namespace teste.ApiCore31.Models
+namespace teste.Models
 {
     /// <summary>
     /// Sale class
     /// </summary>
-    public class Sale 
+    public class Sale : DataBaseEntity
     {
         /// <summary>
         /// Default constructor
@@ -24,7 +23,7 @@ namespace teste.ApiCore31.Models
         public Sale(DataTable table, int indexRow)
         {
             #region-- Populate Object Properties --
-            if (DataHelper.ColumnExists(table, "id"))
+            if (ColumnExists(table, "id"))
             {
                 if (table.Rows[indexRow]["id"] == DBNull.Value)
                 {
@@ -33,7 +32,7 @@ namespace teste.ApiCore31.Models
                 Id = Convert.ToInt64(table.Rows[indexRow]["id"]);
             }
 
-            if (DataHelper.ColumnExists(table, "account_id"))
+            if (ColumnExists(table, "account_id"))
             {
                 if (table.Rows[indexRow]["account_id"] == DBNull.Value)
                 {
@@ -42,7 +41,7 @@ namespace teste.ApiCore31.Models
                 AccountID = table.Rows[indexRow]["account_id"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "transaction_id"))
+            if (ColumnExists(table, "transaction_id"))
             {
                 if (table.Rows[indexRow]["transaction_id"] == DBNull.Value)
                 {
@@ -51,7 +50,7 @@ namespace teste.ApiCore31.Models
                 TransactionID = table.Rows[indexRow]["transaction_id"].ToString();
             }
             		
-            if (DataHelper.ColumnExists(table, "transaction_amount_usd"))
+            if (ColumnExists(table, "transaction_amount_usd"))
             {
                 if (table.Rows[indexRow]["transaction_amount_usd"] == DBNull.Value)
                 {
@@ -60,7 +59,7 @@ namespace teste.ApiCore31.Models
                 TransactionAmount = Convert.ToDouble(table.Rows[indexRow]["transaction_amount_usd"]);
             }
 
-            if (DataHelper.ColumnExists(table, "transaction_currency_code"))
+            if (ColumnExists(table, "transaction_currency_code"))
             {
                 if (table.Rows[indexRow]["transaction_currency_code"] == DBNull.Value)
                 {
@@ -69,7 +68,7 @@ namespace teste.ApiCore31.Models
                 TransactionCurrencyCode = table.Rows[indexRow]["transaction_currency_code"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "local_hour"))
+            if (ColumnExists(table, "local_hour"))
             {
                 if (table.Rows[indexRow]["local_hour"] == DBNull.Value)
                 {
@@ -78,7 +77,7 @@ namespace teste.ApiCore31.Models
                 LocalHour = Convert.ToInt64(table.Rows[indexRow]["local_hour"]);
             }
 
-            if (DataHelper.ColumnExists(table, "transaction_scenario"))
+            if (ColumnExists(table, "transaction_scenario"))
             {
                 if (table.Rows[indexRow]["transaction_scenario"] == DBNull.Value)
                 {
@@ -87,7 +86,7 @@ namespace teste.ApiCore31.Models
                 TransactionScenario = Convert.ToChar(table.Rows[indexRow]["transaction_scenario"]);
             }
 
-            if (DataHelper.ColumnExists(table, "transaction_type"))
+            if (ColumnExists(table, "transaction_type"))
             {
                 if (table.Rows[indexRow]["transaction_type"] == DBNull.Value)
                 {
@@ -96,7 +95,7 @@ namespace teste.ApiCore31.Models
                 TransactionType = Convert.ToChar(table.Rows[indexRow]["transaction_type"]);
             }
 
-            if (DataHelper.ColumnExists(table, "transaction_ip_address"))
+            if (ColumnExists(table, "transaction_ip_address"))
             {
                 if (table.Rows[indexRow]["transaction_ip_address"] == DBNull.Value)
                 {
@@ -105,7 +104,7 @@ namespace teste.ApiCore31.Models
                 TransactionIPaddress = Convert.ToDecimal(table.Rows[indexRow]["transaction_ip_address"]);
             }
 
-            if (DataHelper.ColumnExists(table, "ip_state"))
+            if (ColumnExists(table, "ip_state"))
             {
                 if (table.Rows[indexRow]["ip_state"] == DBNull.Value)
                 {
@@ -114,7 +113,7 @@ namespace teste.ApiCore31.Models
                 IpState = table.Rows[indexRow]["ip_state"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "ip_postal_code"))
+            if (ColumnExists(table, "ip_postal_code"))
             {
                 if (table.Rows[indexRow]["ip_postal_code"] == DBNull.Value)
                 {
@@ -123,7 +122,7 @@ namespace teste.ApiCore31.Models
                 IpPostalCode = table.Rows[indexRow]["ip_postal_code"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "ip_country"))
+            if (ColumnExists(table, "ip_country"))
             {
                 if (table.Rows[indexRow]["ip_country"] == DBNull.Value)
                 {
@@ -132,7 +131,7 @@ namespace teste.ApiCore31.Models
                 IpCountry = table.Rows[indexRow]["ip_country"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "is_proxy_ip"))
+            if (ColumnExists(table, "is_proxy_ip"))
             {
                 if (table.Rows[indexRow]["is_proxy_ip"] == DBNull.Value)
                 {
@@ -141,7 +140,7 @@ namespace teste.ApiCore31.Models
                 IsProxyIP = Convert.ToInt32(table.Rows[indexRow]["is_proxy_ip"]);
             }
 
-            if (DataHelper.ColumnExists(table, "browser_language"))
+            if (ColumnExists(table, "browser_language"))
             {
                 if (table.Rows[indexRow]["browser_language"] == DBNull.Value)
                 {
@@ -150,7 +149,7 @@ namespace teste.ApiCore31.Models
                 BrowserLanguage = table.Rows[indexRow]["browser_language"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "payment_instrument_type"))
+            if (ColumnExists(table, "payment_instrument_type"))
             {
                 if (table.Rows[indexRow]["payment_instrument_type"] == DBNull.Value)
                 {
@@ -159,47 +158,47 @@ namespace teste.ApiCore31.Models
                 PaymentInstrumentType = table.Rows[indexRow]["payment_instrument_type"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "card_type"))
+            if (ColumnExists(table, "card_type"))
             {
                 CardType = table.Rows[indexRow]["card_type"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "payment_billing_postal_code"))
+            if (ColumnExists(table, "payment_billing_postal_code"))
             {
                 PaymentBillingPostalCode = table.Rows[indexRow]["payment_billing_postal_code"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "payment_billing_state"))
+            if (ColumnExists(table, "payment_billing_state"))
             {
                 PaymentBillingState = table.Rows[indexRow]["payment_billing_state"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "payment_billing_country_code"))
+            if (ColumnExists(table, "payment_billing_country_code"))
             {
                 PaymentBillingCountryCode = table.Rows[indexRow]["payment_billing_country_code"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "shipping_postal_code"))
+            if (ColumnExists(table, "shipping_postal_code"))
             {
                 ShippingPostalCode = table.Rows[indexRow]["shipping_postal_code"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "shipping_state"))
+            if (ColumnExists(table, "shipping_state"))
             {
                 ShippingState = table.Rows[indexRow]["shipping_state"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "shipping_country"))
+            if (ColumnExists(table, "shipping_country"))
             {
                 ShippingCountry = table.Rows[indexRow]["shipping_country"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "cvv_verify_result"))
+            if (ColumnExists(table, "cvv_verify_result"))
             {
                 CvvVerifyResult = table.Rows[indexRow]["cvv_verify_result"].ToString();
             }
 
-            if (DataHelper.ColumnExists(table, "digital_item_count"))
+            if (ColumnExists(table, "digital_item_count"))
             {
                 if (table.Rows[indexRow]["digital_item_count"] == DBNull.Value)
                 {
@@ -208,7 +207,7 @@ namespace teste.ApiCore31.Models
                 DigitalItemCount = Convert.ToInt64(table.Rows[indexRow]["digital_item_count"]);
             }
 
-            if (DataHelper.ColumnExists(table, "physical_item_count"))
+            if (ColumnExists(table, "physical_item_count"))
             {
                 if (table.Rows[indexRow]["physical_item_count"] == DBNull.Value)
                 {
@@ -217,7 +216,7 @@ namespace teste.ApiCore31.Models
                 PhysicalItemCount = Convert.ToInt64(table.Rows[indexRow]["physical_item_count"]);
             }
 
-            if (DataHelper.ColumnExists(table, "transaction_date_time"))
+            if (ColumnExists(table, "transaction_date_time"))
             {
                 if (table.Rows[indexRow]["transaction_date_time"] == DBNull.Value)
                 {
@@ -232,159 +231,160 @@ namespace teste.ApiCore31.Models
         /// <summary>
         /// Id
         /// </summary>
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public Int64 Id { get; set;}
 
         /// <summary>
         /// Accound Id
         /// </summary>
-        [JsonProperty("account_id")] 
+        [JsonPropertyName("account_id")] 
         public string AccountID { get; set;}
 
         /// <summary>
         /// Id of Transaction
         /// </summary>
-        [JsonProperty("transaction_id")]
+        [JsonPropertyName("transaction_id")]
         public string TransactionID { get; set;}
 
         /// <summary>
         /// Amount of the transation in US dollar
         /// </summary>
-        [JsonProperty("transaction_amount_usd")]
+        [JsonPropertyName("transaction_amount_usd")]
         public double TransactionAmount { get; set;}
 
         /// <summary>
         /// The currency code of transaction
         /// </summary>
-        [JsonProperty("transaction_currency_code")]
+        [JsonPropertyName("transaction_currency_code")]
         public string TransactionCurrencyCode { get; set;}
 
         /// <summary>
         /// Place local hour of the transaction
         /// </summary>
-        [JsonProperty("local_hour")]
+        [JsonPropertyName("local_hour")]
         public Int64 LocalHour { get; set;}
 
         /// <summary>
         /// Transaction scenario
         /// </summary>
-        [JsonProperty("transaction_scenario")]
+        [JsonPropertyName("transaction_scenario")]
         public char TransactionScenario { get; set;}
 
         /// <summary>
         /// Type of the transaction
         /// </summary>
-        [JsonProperty("transaction_type")]
+        [JsonPropertyName("transaction_type")]
         public char TransactionType { get; set;}
 
         /// <summary>
         /// Device IP address where transaction happens 
         /// </summary>
-        [JsonProperty("transaction_ip_address")]
+        [JsonPropertyName("transaction_ip_address")]
         public decimal TransactionIPaddress { get; set;}
 
         /// <summary>
         /// The IP federation unity
         /// </summary>
-        [JsonProperty("ip_state")]
+        [JsonPropertyName("ip_state")]
         public string IpState { get; set;}
 
         /// <summary>
         /// The IP postal code for local where transaction happens
         /// </summary>
-        [JsonProperty("ip_postal_code")]
+        [JsonPropertyName("ip_postal_code")]
         public string IpPostalCode { get; set;}
 
         /// <summary>
         /// The country for registered IP where transaction happens
         /// </summary>
-        [JsonProperty("ip_country")]
+        [JsonPropertyName("ip_country")]
         public string IpCountry { get; set;}
 
         /// <summary>
         /// Check if transaction happened under a proxy IP
         /// </summary>
-        [JsonProperty("is_proxy_ip")]
+        [JsonPropertyName("is_proxy_ip")]
         public int IsProxyIP { get; set;}
 
         /// <summary>
         /// The language of used browser
         /// </summary>
-        [JsonProperty("browser_language")]
+        [JsonPropertyName("browser_language")]
         public string BrowserLanguage { get; set;}
 
         /// <summary>
         /// The payment instrument type
         /// </summary>
-        [JsonProperty("payment_instrument_type")]
+        [JsonPropertyName("payment_instrument_type")]
         public string PaymentInstrumentType { get; set;}
 
         /// <summary>
         /// The type of the credit/debit card
         /// </summary>
-        [JsonProperty("card_type")]
+        [JsonPropertyName("card_type")]
         #nullable enable
         public string? CardType { get; set;}
 
         /// <summary>
         /// The postal code for the billing address
         /// </summary>
-        [JsonProperty("payment_billing_postal_code")]
+        [JsonPropertyName("payment_billing_postal_code")]
         public string? PaymentBillingPostalCode { get; set;}
 
         /// <summary>
         /// The federation unity for the payment billing
         /// </summary>
-        [JsonProperty("payment_billing_state")]
+        [JsonPropertyName("payment_billing_state")]
         public string? PaymentBillingState { get; set;}
 
         /// <summary>
         /// The ISO code for the country where the billing address is
         /// </summary>
-        [JsonProperty("payment_billing_country_code")]
+        [JsonPropertyName("payment_billing_country_code")]
         public string? PaymentBillingCountryCode { get; set;}
 
         /// <summary>
         /// The shipping postal code
         /// </summary>
-        [JsonProperty("shipping_postal_code")]
+        [JsonPropertyName("shipping_postal_code")]
         public string? ShippingPostalCode { get; set;}
 
         /// <summary>
         /// The shipping federation unity
         /// </summary>
-        [JsonProperty("shipping_state")]
+        [JsonPropertyName("shipping_state")]
         public string? ShippingState { get; set;}
 
         /// <summary>
         /// The shipping country
         /// </summary>
-        [JsonProperty("shipping_country")]
+        [JsonPropertyName("shipping_country")]
         public string? ShippingCountry { get; set;}
 
         /// <summary>
         /// The Card Verification Value result
         /// </summary>
-        [JsonProperty("cvv_verify_result")]
+        [JsonPropertyName("cvv_verify_result")]
         public string? CvvVerifyResult { get; set;}
 
         /// <summary>
         /// Amount of items in a digital measurement
         /// </summary>
-        [JsonProperty("digital_item_count")]
+        [JsonPropertyName("digital_item_count")]
         public Int64 DigitalItemCount { get; set;}
 
         /// <summary>
         /// Amount of items in a empirical meaning
         /// </summary>
-        [JsonProperty("physical_item_count")]
+        [JsonPropertyName("physical_item_count")]
         public Int64 PhysicalItemCount { get; set;}
 
         /// <summary>
         /// The date when transaction happened
         /// </summary>
-        [JsonProperty("transaction_date_time")]
+        [JsonPropertyName("transaction_date_time")]
         public DateTime TransactionDateTime { get; set;}
+
         #endregion
     }
 }

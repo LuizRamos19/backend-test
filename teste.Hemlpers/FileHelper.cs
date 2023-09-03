@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using teste.ApiCore31.Models;
+using teste.Models;
 
-namespace teste.ApiCore31.Helpers
+namespace teste.Helpers
 {
     /// <summary>
     /// Helper class for files

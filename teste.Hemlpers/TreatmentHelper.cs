@@ -1,7 +1,6 @@
-
 using System;
 
-namespace teste.ApiCore31.Helpers
+namespace teste.Helpers
 {
     /// <summary>
     /// Class for entries treatment
