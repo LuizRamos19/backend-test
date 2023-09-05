@@ -1,31 +1,31 @@
 CREATE OR REPLACE PROCEDURE SAVE_SALE
 (
-  P_Id                        NUMBER,
-  P_AccountID                 VARCHAR2,
-  P_TransactionID             VARCHAR2,
-  P_TransactionAmount         NUMBER,
-  P_TransactionCurrencyCode   VARCHAR2,
-  P_LocalHour                 NUMBER,
-  P_TransactionScenario       CHAR,
-  P_TransactionType           CHAR,
-  P_TransactionIPaddress      NUMBER,
-  P_IpState                   VARCHAR2,
-  P_IpPostalCode              VARCHAR2,
-  P_IpCountry                 VARCHAR2,
-  P_IsProxyIP                 NUMBER,
-  P_BrowserLanguage           VARCHAR2,
-  P_PaymentInstrumentType     VARCHAR2,
-  P_CardType                  VARCHAR2,
-  P_PaymentBillingPostalCode  VARCHAR2,
-  P_PaymentBillingState       VARCHAR2,
-  P_PaymentBillingCountryCode VARCHAR2,
-  P_ShippingPostalCode        VARCHAR2,
-  P_ShippingState             VARCHAR2,
-  P_ShippingCountry           VARCHAR2,
-  P_CvvVerifyResult           VARCHAR2,
-  P_DigitalItemCount          VARCHAR2,
-  P_PhysicalItemCount         VARCHAR2,
-  P_TransactionDateTime       VARCHAR2,
+  P_Id                        sales.id%TYPE,
+  P_AccountID                 sales.account_id%TYPE,
+  P_TransactionID             sales.transaction_id%TYPE,
+  P_TransactionAmountUsd      sales.transaction_amount_usd%type,
+  P_TransactionCurrencyCode   sales.transaction_currency_code%type,
+  P_LocalHour                 sales.local_hour%type,
+  P_TransactionScenario       sales.transaction_scenario%type,
+  P_TransactionType           sales.transaction_type%type,
+  P_TransactionIPaddress      sales.transaction_ip_address%type,
+  P_IpState                   sales.ip_state%type,
+  P_IpPostalCode              sales.ip_postal_code%type,
+  P_IpCountry                 sales.ip_country%type,
+  P_IsProxyIP                 sales.is_proxy_ip%type,
+  P_BrowserLanguage           sales.browser_language%type,
+  P_PaymentInstrumentType     sales.payment_instrument_type%type,
+  P_CardType                  sales.card_type%type,
+  P_PaymentBillingPostalCode  sales.payment_billing_postal_code%type,
+  P_PaymentBillingState       sales.payment_billing_state%type,
+  P_PaymentBillingCountryCode sales.payment_billing_country_code%type,
+  P_ShippingPostalCode        sales.shipping_postal_code%type,
+  P_ShippingState             sales.shipping_state%type,
+  P_ShippingCountry           sales.shipping_country%type,
+  P_CvvVerifyResult           sales.cvv_verify_result%type,
+  P_DigitalItemCount          sales.digital_item_count%type,
+  P_PhysicalItemCount         sales.physical_item_count%type,
+  P_TransactionDateTime       sales.transaction_date_time%type,
   O_Result                    OUT VARCHAR2
 ) 
 IS
@@ -33,7 +33,7 @@ BEGIN
   INSERT INTO SALES
   (
     ID,
-    ACCOUNT_ID,                	  TRANSACTION_ID,           TRANSACTION_AMOUNT_USD,
+    ACCOUNT_ID,                   TRANSACTION_ID,           TRANSACTION_AMOUNT_USD,
     TRANSACTION_CURRENCY_CODE,    LOCAL_HOUR,               TRANSACTION_SCENARIO,
     TRANSACTION_TYPE,             TRANSACTION_IP_ADDRESS,   IP_STATE,
     IP_POSTAL_CODE,               IP_COUNTRY,               IS_PROXY_IP,
@@ -46,7 +46,7 @@ BEGIN
   VALUES
   (
     P_Id, 
-    P_AccountID,            	  P_TransactionID,          P_TransactionAmount,
+    P_AccountID,                  P_TransactionID,          P_TransactionAmountUsd,
     P_TransactionCurrencyCode,    P_LocalHour,              P_TransactionScenario, 
     P_TransactionType,            P_TransactionIPaddress,   P_IpState,
     P_IpPostalCode,               P_IpCountry,              P_IsProxyIP,
@@ -60,6 +60,5 @@ BEGIN
   O_Result := 'OK';
 EXCEPTION
   WHEN OTHERS THEN
-    O_Result := to_char(SQLERRM||' - '||SQLERRM); 
+    O_Result := to_char(SQLCODE||' - '||SQLERRM); 
 END SAVE_SALE;
-/
