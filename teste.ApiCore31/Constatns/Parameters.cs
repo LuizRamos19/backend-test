@@ -57,7 +57,7 @@ namespace teste.ApiCore31.Constatns
         /// <summary>
         /// Alowed cors origins alias
         /// </summary>
-        public static string RedisConfiguration => @"http://localhost:6379/"; 
+        public static string RedisConfiguration => "127.0.0.1:6379"; 
 
     }
 }

@@ -26,6 +26,7 @@ namespace teste.ApiCore31.Infrastructure.Caching
 
         public async Task SetAsync(string key, string value)
         {
+            _cache.Op
             await _cache.SetStringAsync(key, value);
         }
     }

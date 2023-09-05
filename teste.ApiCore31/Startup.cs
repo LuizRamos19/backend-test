@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using teste.ApiCore31.Constatns;
 using teste.ApiCore31.Infrastructure.Caching;
 using teste.ApiCore31.Infrastructure.DataBase;
@@ -38,15 +39,12 @@ namespace teste.ApiCore31
                         Name = "Marcio Viterbo"
                     } 
                 });
-                // c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-                // var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                // var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                // c.IncludeXmlComments(xmlPath);
             });
 
             services.AddScoped<IKafkaMessageRepository, KafkaMenssageRepository>();
             services.AddScoped<ICachingService, CachingService>();
             services.AddScoped<ISnapperDataBase, SnapperDataBase>();
+
             services.AddStackExchangeRedisCache( o => {
                 o.InstanceName = Parameters.RedisInstaceName;
                 o.Configuration = Parameters.RedisConfiguration;

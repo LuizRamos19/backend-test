@@ -148,7 +148,7 @@ namespace teste.ApiCore31.Controllers
                 if (!string.IsNullOrWhiteSpace(todoCache))
                 {
                     saleToDo = JsonSerializer.Deserialize<Sale>(todoCache);
-                    logMessage = "Record already in Redis cache";
+                    logMessage = $"Record {sale.AccountID} already in Redis cache";
                     processResult.AppendLine(logMessage);
                     _logger.LogInformation(logMessage, saleToDo);
                     return processResult.ToString();
@@ -197,8 +197,17 @@ namespace teste.ApiCore31.Controllers
                 var tb = oracle.Command.ExecuteTable();
                 if (Convert.ToInt64(tb.Rows[0]["Existe"]) == 0)
                 {
+                    //Convert Transaction Amount if not in USD
+                    if (sale.TransactionCurrencyCode != "USD")
+                    {
+                        var currentTransactoinAmount = sale.TransactionAmount;
+                        var convesion = await ConvertToDollar(sale);
+                        logMessage = $"Record {sale.AccountID}  has Transaction Amount converted from {sale.TransactionCurrencyCode}: {currentTransactoinAmount} to USD: {sale.TransactionAmount}";
+                        processResult.AppendLine(logMessage);
+                        _logger.LogInformation(logMessage, saleToDo);
+                    }
                     await _cachingService.SetAsync(sale.Id.ToString(), JsonSerializer.Serialize(saleToDo));
-                    logMessage = "Record not fount in the data base, so sent to the Redis cache";
+                    logMessage = $"Record {sale.AccountID} not fount in the data base, so sent to the Redis cache";
                     processResult.AppendLine(logMessage);
                     _logger.LogInformation(logMessage, saleToDo);
                 }
@@ -223,10 +232,16 @@ namespace teste.ApiCore31.Controllers
         /// </summary>
         /// <param name="sale">The Sale entity</param>
         /// <returns>The amount value in Dollar</returns>
-        static async Task<Sale> ConvertToDollar(Sale sale)
+        static async Task<RateConvertionResult> ConvertToDollar(Sale sale)
         {
             try
             {
+                var rateConvertionResult = new RateConvertionResult
+                {
+                    TimeLastUpdateUtc = DateTime.Now.AddHours(1),
+                    TransactionAmount = sale.TransactionAmount
+                };
+
                 var URLString = new Uri($@"https://v6.exchangerate-api.com/v6/{Parameters.ExchangeRateApiKey}/latest/USD");
                 using var webClient = new WebClient();
                 var json = await webClient.DownloadStringTaskAsync(URLString);
@@ -235,9 +250,10 @@ namespace teste.ApiCore31.Controllers
                 //Reflection to get related value from sale to apply conversion
                 var rateValue = convesion.ConversionRates.GetType().GetProperty(sale.TransactionCurrencyCode).GetValue(convesion.ConversionRates, null);
                 if (rateValue == null)
-                    return sale;
-                sale.TransactionAmount /= Convert.ToDouble(rateValue);
-                return sale;
+                    return rateConvertionResult;
+                rateConvertionResult.TimeLastUpdateUtc = Convert.ToDateTime(convesion.TimeNextUpdateUtc);
+                rateConvertionResult.TransactionAmount = sale.TransactionAmount / Convert.ToDouble(rateValue);
+                return rateConvertionResult;
             }
             catch (Exception ex)
             {
