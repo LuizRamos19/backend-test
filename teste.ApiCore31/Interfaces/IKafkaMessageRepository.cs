@@ -6,6 +6,6 @@ namespace teste.ApiCore31.Interfaces
 {
     public interface IKafkaMessageRepository
     {
-        Task<PersistenceStatus> SendMensagemAsync(Sale mensagem);
+        Task<PersistenceStatus> SendMessageAsync(Sale mensagem);
     }
 }

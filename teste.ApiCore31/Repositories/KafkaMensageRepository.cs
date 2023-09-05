@@ -10,7 +10,7 @@ namespace teste.ApiCore31.Repositories
 {
     public class KafkaMenssageRepository : IKafkaMessageRepository
     {
-        public async Task<PersistenceStatus> SendMensagemAsync(Sale sale)
+        public async Task<PersistenceStatus> SendMessageAsync(Sale sale)
         {
             var config = new ProducerConfig { BootstrapServers = Parameters.KafkaHost };
             using var producer = new ProducerBuilder<string, string>(config).Build();

@@ -17,6 +17,7 @@ using Snapper.Core.DataBase;
 using System.Text.Json;
 using StackExchange.Redis;
 using Confluent.Kafka;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace teste.ApiCore31.Controllers
 {
@@ -29,7 +30,7 @@ namespace teste.ApiCore31.Controllers
         private readonly IKafkaMessageRepository _kafkaMessageRepository;
         private readonly ICachingService _cachingService;
         private readonly ISnapperDataBase _snapperDataBase;
-        private static readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private CancellationTokenSource _cts;
 
         public ProcessDataController(ILogger<ProcessDataController> logger, 
             IKafkaMessageRepository kafkaMessageRepository, 
@@ -48,9 +49,13 @@ namespace teste.ApiCore31.Controllers
         /// <param name="sales">The list of Sale entity to be processed</param>
         /// <returns>Não sei</returns>
         /// <remarks>
-        /// Nothing here
+        /// Nothing herere
         /// </remarks>
         [HttpPost]
+        [SwaggerOperation(Summary = "Processa sale data", Description = "Process sale record to kafka queue")]
+        [SwaggerResponse(200, "Everything works well")]
+        [SwaggerResponse(400, "BAD REQUEST")]
+        [SwaggerResponse(500, "SERVER ERROR")]
         public async Task<IActionResult> Post([FromBody] List<Sale> sales)
         {
             Sale pickedSale = new Sale();
@@ -58,6 +63,7 @@ namespace teste.ApiCore31.Controllers
 
             try
             {
+                _cts = new CancellationTokenSource();
                 while (!_cts.IsCancellationRequested)
                 {
                     try
@@ -107,7 +113,7 @@ namespace teste.ApiCore31.Controllers
             {
                 try
                 {
-                    var status = await _kafkaMessageRepository.SendMensagemAsync(sale);
+                    var status = await _kafkaMessageRepository.SendMessageAsync(sale);
                     if (status == PersistenceStatus.Persisted)
                     {
                         processResult.AppendLine($"{(DateTime.Now - currentTime).TotalSeconds:In 00 secs taken} has been queued up.");
@@ -184,16 +190,21 @@ namespace teste.ApiCore31.Controllers
                     "SELECT count(*) Existe FROM sales s WHERE s.ACCOUNT_ID = (p)AccountId",
                     new List<Parameter>
                     {
-                                    new Parameter
-                                    {
-                                        Name = "AccountId",
-                                        Value = sale.AccountID,
-                                        ParameterDirection = ParameterDirection.Input,
-                                        ParameterDbType = ParameterDbType.Varchar2
-                                    }
+                        new Parameter
+                        {
+                            Name = "AccountId",
+                            Value = sale.AccountID,
+                            ParameterDirection = ParameterDirection.Input,
+                            ParameterDbType = ParameterDbType.Varchar2
+                        }
                     },
                     CommandType.Text
                 );
+                var convesion  = new RateConvertionResult
+                {
+                    TimeLastUpdateUtc = DateTime.Now.AddHours(1),
+                    TransactionAmount = sale.TransactionAmount
+                };
                 var tb = oracle.Command.ExecuteTable();
                 if (Convert.ToInt64(tb.Rows[0]["Existe"]) == 0)
                 {
@@ -201,13 +212,13 @@ namespace teste.ApiCore31.Controllers
                     if (sale.TransactionCurrencyCode != "USD")
                     {
                         var currentTransactoinAmount = sale.TransactionAmount;
-                        var convesion = await ConvertToDollar(sale);
-                        logMessage = $"Record {sale.AccountID}  has Transaction Amount converted from {sale.TransactionCurrencyCode}: {currentTransactoinAmount} to USD: {sale.TransactionAmount}";
+                        convesion = await ConvertToDollar(sale);
+                        logMessage = $"Record {sale.AccountID} has Transaction Amount converted from {sale.TransactionCurrencyCode}: {currentTransactoinAmount} to USD: {convesion.TransactionAmount}";
                         processResult.AppendLine(logMessage);
                         _logger.LogInformation(logMessage, saleToDo);
                     }
-                    await _cachingService.SetAsync(sale.Id.ToString(), JsonSerializer.Serialize(saleToDo));
-                    logMessage = $"Record {sale.AccountID} not fount in the data base, so sent to the Redis cache";
+                    await _cachingService.SetAsync(sale.Id.ToString(), JsonSerializer.Serialize(saleToDo), convesion.TimeLastUpdateUtc);
+                    logMessage = $"Record {sale.AccountID} not fount in the database, so sent to the Redis cache";
                     processResult.AppendLine(logMessage);
                     _logger.LogInformation(logMessage, saleToDo);
                 }
@@ -252,7 +263,7 @@ namespace teste.ApiCore31.Controllers
                 if (rateValue == null)
                     return rateConvertionResult;
                 rateConvertionResult.TimeLastUpdateUtc = Convert.ToDateTime(convesion.TimeNextUpdateUtc);
-                rateConvertionResult.TransactionAmount = sale.TransactionAmount / Convert.ToDouble(rateValue);
+                rateConvertionResult.TransactionAmount = Math.Round(sale.TransactionAmount / Convert.ToDouble(rateValue), 2);
                 return rateConvertionResult;
             }
             catch (Exception ex)

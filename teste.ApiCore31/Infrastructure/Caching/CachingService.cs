@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace teste.ApiCore31.Infrastructure.Caching
@@ -8,6 +9,7 @@ namespace teste.ApiCore31.Infrastructure.Caching
     {
         private readonly IDistributedCache _cache;
         private readonly DistributedCacheEntryOptions _options;
+        private static readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         public CachingService(IDistributedCache cache)
         {
@@ -24,10 +26,14 @@ namespace teste.ApiCore31.Infrastructure.Caching
             return await _cache.GetStringAsync(key);
         }
 
-        public async Task SetAsync(string key, string value)
+        public async Task SetAsync(string key, string value, DateTime exppires)
         {
-            _cache.Op
-            await _cache.SetStringAsync(key, value);
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpiration = new DateTimeOffset(DateTime.UtcNow.AddHours(1), TimeSpan.Zero),
+                SlidingExpiration = TimeSpan.FromSeconds(3600)
+            };
+            await _cache.SetStringAsync(key, value, cacheOptions);
         }
     }
 }
