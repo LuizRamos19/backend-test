@@ -15,7 +15,7 @@ namespace teste.ApiCore31.Enumerators
         /// <summary>
         /// GET_SALE, that is the name in the Oracle Database.
         /// </summary>
-        [Display(Name = "SAVE_SALE")]
+        [Display(Name = "GET_SALE")]
         GetSale
         
     }
