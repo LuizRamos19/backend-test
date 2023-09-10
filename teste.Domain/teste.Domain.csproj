@@ -5,13 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0" />
+    <Compile Remove="Commands\Requests\GetSalesQueueRequest.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\teste.Infrastructure\teste.Infrastructure.csproj" />
     <ProjectReference Include="..\teste.Models\teste.Models.csproj" />
+    <ProjectReference Include="..\teste.Repositories\teste.Repositories.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,13 +1,19 @@
 ﻿
 using System;
 
-namespace teste.Models
+namespace teste.Models.Anemic
 {
     /// <summary>
-    /// Class for store data from result convertion
+    /// Class of Anemic object to store data from result convertion
     /// </summary>
     public class RateConvertionResult
     {
+        public RateConvertionResult()
+        {
+            TransactionAmount = 0;
+            TimeLastUpdateUtc = DateTime.UtcNow;
+        }
+
         /// <summary>
         /// Time where transaction must expire
         /// </summary>

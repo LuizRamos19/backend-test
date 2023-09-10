@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Text.Json.Serialization;
+using teste.Models.Anemic;
 
 namespace teste.Models
 {

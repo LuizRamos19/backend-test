@@ -7,16 +7,31 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.10" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
-    <PackageReference Include="Vitsoftol.Snapper.Core" Version="3.1.5" />
+    <Compile Remove="Infrastructure\**" />
+    <Compile Remove="Interfaces\**" />
+    <Compile Remove="Repositories\**" />
+    <Content Remove="Infrastructure\**" />
+    <Content Remove="Interfaces\**" />
+    <Content Remove="Repositories\**" />
+    <EmbeddedResource Remove="Infrastructure\**" />
+    <EmbeddedResource Remove="Interfaces\**" />
+    <EmbeddedResource Remove="Repositories\**" />
+    <None Remove="Infrastructure\**" />
+    <None Remove="Interfaces\**" />
+    <None Remove="Repositories\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\teste.Hemlpers\teste.Helpers.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.10" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\teste.Domain\teste.Domain.csproj" />
+    <ProjectReference Include="..\teste.Infrastructure\teste.Infrastructure.csproj" />
     <ProjectReference Include="..\teste.Models\teste.Models.csproj" />
+    <ProjectReference Include="..\teste.Repositories\teste.Repositories.csproj" />
   </ItemGroup>
 
 

@@ -1,15 +1,15 @@
+using Confluent.Kafka;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using StackExchange.Redis;
+using Microsoft.VisualBasic;
+using System;
 using teste.ApiCore31.Constatns;
-using teste.ApiCore31.Infrastructure.Caching;
-using teste.ApiCore31.Infrastructure.DataBase;
-using teste.ApiCore31.Interfaces;
-using teste.ApiCore31.Repositories;
+using teste.Domain.Handlers;
+using teste.Repositories.Kafka;
 
 namespace teste.ApiCore31
 {
@@ -41,14 +41,8 @@ namespace teste.ApiCore31
                 });
             });
 
-            services.AddScoped<IKafkaMessageRepository, KafkaMenssageRepository>();
-            services.AddScoped<ICachingService, CachingService>();
-            services.AddScoped<ISnapperDataBase, SnapperDataBase>();
-
-            services.AddStackExchangeRedisCache( o => {
-                o.InstanceName = Parameters.RedisInstaceName;
-                o.Configuration = Parameters.RedisConfiguration;
-            });
+            services.AddScoped<IKafkaRepository, KafkaRepository>();
+            services.AddScoped<ICreateSalesQueueHandler, CreateSalesQueueHandler>();
 
             services.AddCors(options =>
             {

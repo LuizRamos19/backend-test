@@ -1,6 +1,3 @@
-using teste.ApiCore31.Enumerators;
-using teste.ApiCore31.Extensions;
-
 namespace teste.ApiCore31.Constatns
 {
     /// <summary>
@@ -38,26 +35,6 @@ namespace teste.ApiCore31.Constatns
         /// List of allowed cors origins
         /// </summary>
         public static string[] Origins => origins;
-
-        /// <summary>
-        /// Kafka local host address
-        /// </summary>
-        public static string KafkaHost => "localhost:9092";
-
-        /// <summary>
-        /// Alowed cors origins alias
-        /// </summary>
-        public static string ExchangeRateApiKey => "351b37bfc54dbe41826820d1";
-
-        /// <summary>
-        /// Alowed cors origins alias
-        /// </summary>
-        public static string RedisInstaceName => "redis";
-
-        /// <summary>
-        /// Alowed cors origins alias
-        /// </summary>
-        public static string RedisConfiguration => "127.0.0.1:6379"; 
 
     }
 }

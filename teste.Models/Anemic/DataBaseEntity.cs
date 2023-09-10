@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace teste.Models
+namespace teste.Models.Anemic
 {
     public class DataBaseEntity
     {

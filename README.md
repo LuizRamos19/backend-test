@@ -9,7 +9,9 @@ Develop a mini-application to process multiple sales transactions:
 1. Create a REST API that should receive by request all the transactions to be processed:
     1. The API should receive the transaction data and send to a Kafka topic.
 2. Create a Worker Service to consume the message produced by the API to the Kafka, process each transaction and convert the transaction amount (TransactionAmount) in American dollar (USD):
-    1. Use the API https://v6.exchangerate-api.com/v6/{API_KEY}/latest/USD and the column (TransactionCurrencyCode) from the sample file for the exchange rate conversion. The values returned from this API should be stored in Redis to increase performance and avoid calling the API multiple times for each transaction. The Redis data should expire according to the value returned from the API in the property time_next_update_utc and calculated according to the current datetime of the process being executed. Example: If the Worker execute at "15/03/2023 23:00:01 +0000" and the response value of the API was "16/03/2023 00:00:01 +0000", the expiration time in Redis should be 1 hour
+    1. Use the API https://v6.exchangerate-api.com/v6/{API_KEY}/latest/USD and the column (TransactionCurrencyCode) from the sample file for the exchange rate conversion. 
+	   Redis data should expire according to the value returned from the API in the property time_next_update_utc and calculated according to the current datetime of the process being executed. 
+	   Example: If the Worker execute at "15/03/2023 23:00:01 +0000" and the response value of the API was "16/03/2023 00:00:01 +0000", the expiration time in Redis should be 1 hour
     2. The Worker should persist the transaction data in the Oracle database
 
 # Technical Requirements

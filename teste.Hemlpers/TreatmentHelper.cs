@@ -20,7 +20,7 @@ namespace teste.Helpers
             var year = Convert.ToInt16(splitedValue[2].Split(' ')[0]);
             var hour = Convert.ToInt16(splitedValue[2].Split(' ')[1].Split(':')[0]);
             var minute = Convert.ToInt16(splitedValue[2].Split(' ')[1].Split(':')[1]);
-            return new DateTime(year, month, day, hour, minute, 0);
+            return new DateTime(year, month, day, hour, minute, 0).ToUniversalTime();
         }
     }
 }
